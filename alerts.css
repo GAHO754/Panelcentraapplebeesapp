@@ -1,0 +1,59 @@
+/* ===============================
+   ALERTAS – INSPECTOR
+   =============================== */
+.alertCard{
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+
+.alertCard:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.12);
+}
+
+.alertIcon{
+  font-size: 20px;
+  line-height: 1;
+}
+
+.alertBody{
+  flex: 1;
+}
+
+.alertTitle{
+  font-weight: 600;
+}
+
+.alertMeta{
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.alert-ok{
+  background: #0f2f23;
+  border: 1px solid #1d6f4a;
+}
+.alert-ok .alertIcon{ color:#3ddc97; }
+
+.alert-warn{
+  background: #2f260f;
+  border: 1px solid #8a6d1d;
+}
+.alert-warn .alertIcon{ color:#f7c948; }
+
+.alert-err{
+  background: #2f1212;
+  border: 1px solid #8a2b2b;
+}
+.alert-err .alertIcon{ color:#ff6b6b; }
+
+.highlight{
+  outline: 2px solid #7dd3fc;
+  background: rgba(125,211,252,.15);
+  border-radius: 8px;
+}
