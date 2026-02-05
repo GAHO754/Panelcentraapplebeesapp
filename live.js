@@ -4,8 +4,6 @@
   const auth = firebase.auth();
   const $ = (id)=>document.getElementById(id);
 
-  firebase.auth().signInAnonymously()
-  .catch(err => console.error("Auth error", err));
 
   /* ===============================
      ⚠️ OPCIONAL: Gate Admin
@@ -344,22 +342,25 @@
         }))
         .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
 
-      // points node
+      // 1. Obtener puntos del nodo oficial en la base de datos
       const pSnap = await db.ref(`users/${INS.uid}/points`).get();
-      const pointsNode = pSnap.exists() ? Number(pSnap.val()||0) : 0;
+      const pointsNode = pSnap.exists() ? Number(pSnap.val() || 0) : 0;
 
-      // Resumen calculado (saldo disponible aproximado por tickets - canjes)
+      // 2. Resumen calculado (Cálculo de auditoría: Tickets activos - Gastados - Reservados)
       const now = Date.now();
+      
+      // Suma de puntos ya utilizados (canjeados)
       const spent = reds
         .filter(r => ["canjeado","redeemed","usado","consumido"].includes(String(r.status||"").toLowerCase()))
         .reduce((a,r)=>a + (Number(r.cost)||0),0);
 
+      // Suma de puntos bloqueados por canjes pendientes que no han expirado
       const reserved = reds
         .filter(r => ["pendiente","pending"].includes(String(r.status||"").toLowerCase()))
         .filter(r => !r.expiresAt || r.expiresAt > now)
         .reduce((a,r)=>a + (Number(r.cost)||0),0);
 
-      // tickets activos (si usas vencePuntos)
+      // Cálculo de puntos ganados por tickets que aún no vencen
       let activeEarned = 0;
       let expSoon = [];
       tickets.forEach(t=>{
@@ -376,7 +377,19 @@
         }
       });
 
+      // Saldo real que el usuario debería tener según su historial
       const calculatedAvailable = Math.max(0, activeEarned - spent - reserved);
+
+      // --- LÓGICA DE VISUALIZACIÓN INTELIGENTE ---
+      // Si el nodo oficial es 0 pero el historial tiene tickets, mostramos el calculado
+      const displayPoints = (pointsNode === 0 && calculatedAvailable > 0) ? calculatedAvailable : pointsNode;
+
+      // Cambiamos el texto de la alerta si hay diferencia entre lo que dice la DB y lo que calculamos
+      if (Math.abs(pointsNode - calculatedAvailable) > 0.1) {
+          insMsg.innerHTML = `<span class="tag warn">⚠️ Saldo desfasado: DB ${money(pointsNode)} | Calc ${money(calculatedAvailable)}</span>`;
+      } else {
+          insMsg.textContent = "Listo.";
+      }
 
       // Render perfil
       const name = userObj.name || userObj.nombre || "";
@@ -400,7 +413,7 @@
       `).join("");
 
       // Resumen top
-      sumSaldo.textContent = money(pointsNode);
+      sumSaldo.textContent = money(displayPoints);
       sumTickets.textContent = String(tickets.length);
       sumCanjes.textContent = String(reds.length);
 
@@ -742,7 +755,7 @@ function renderAlerts(uid){
 }
 
 async function renderAlertsForUser(uid) {
-  // 1. Limpieza inicial
+  // 1. Limpieza inicial del contenedor de alertas
   alertsList.innerHTML = "";
   alertsEmpty.style.display = "block";
   if (!uid) return;
@@ -751,10 +764,11 @@ async function renderAlertsForUser(uid) {
   const now = Date.now();
   const FIVE_MIN = 5 * 60 * 1000;
 
-  // --- PARTE A: ALERTAS AUTOMÁTICAS (LOCALES) ---
+  // --- PARTE A: ALERTAS AUTOMÁTICAS (DETECCIÓN EN VIVO) ---
+  // Filtramos los eventos del cache local que pertenecen a este usuario
   const userEvents = cache.filter(e => eventMainUser(e).uid === uid);
 
-  // Intentos fallidos recientes (5 min)
+  // Detectar intentos fallidos acumulados en los últimos 5 minutos
   const failedRecent = userEvents.filter(e => 
     ["redeem_failed", "redeem_lookup_fail", "ticket_blocked", "scan_invalid_format"].includes(e.type) &&
     (now - (e.createdAt || 0)) <= FIVE_MIN
@@ -765,13 +779,14 @@ async function renderAlertsForUser(uid) {
     alertsEmpty.style.display = "none";
     alertsList.innerHTML += `
       <div class="miniCard err">
-        <strong>⚠️ Actividad sospechosa</strong>
-        <div class="muted">${failedRecent.length} fallos en menos de 5 min.</div>
+        <strong>⚠️ Actividad sospechosa detectada</strong>
+        <div class="muted">${failedRecent.length} fallos técnicos o de validación en menos de 5 min.</div>
       </div>`;
   }
 
-  // --- PARTE B: ALERTAS DESDE DATABASE (HISTÓRICAS) ---
+  // --- PARTE B: ALERTAS DESDE DATABASE (HISTORIAL GUARDADO) ---
   try {
+    // Consulta al nodo /alerts usando el índice por UID
     const snap = await db.ref("alerts").orderByChild("uid").equalTo(uid).limitToLast(10).once("value");
     
     if (snap.exists()) {
@@ -789,7 +804,7 @@ async function renderAlertsForUser(uid) {
           <div class="miniCard">
             <div style="display:flex; gap:10px; align-items:center;">
                <span>${icon}</span>
-               <strong>${safe(a.title || "Alerta")}</strong>
+               <strong>${safe(a.title || "Alerta de Sistema")}</strong>
             </div>
             <div class="muted" style="margin-top:5px;">${safe(a.message || "")}</div>
             <div class="muted mono" style="font-size:10px;">${fmtTime(a.createdAt)}</div>
@@ -797,10 +812,10 @@ async function renderAlertsForUser(uid) {
       }).join("");
     }
   } catch (err) {
-    console.error("Error cargando alertas históricas:", err);
+    console.error("Error cargando alertas históricas de Firebase:", err);
   }
 
-  // Si después de ambas partes no hay nada, mostrar el mensaje de "vacío"
+  // Si no se detectó nada localmente ni existen registros en DB, mostramos mensaje de "Sin alertas"
   if (!hasAlerts) alertsEmpty.style.display = "block";
 }
 
