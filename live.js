@@ -891,5 +891,6 @@ function evaluateSmartAlerts(uid, data){
     db.ref("alerts").push(a);
   });
 }
-  });
-})();
+
+}); // Cierra el auth.onAuthStateChanged
+})(); // Cierra el bloque principal de la App
