@@ -583,29 +583,29 @@
   statusChip.style.background = "rgba(255,255,255,.06)";
 
   // sesión / auth opcional para ver quien lo abre
-  auth.onAuthStateChanged((user) => {
+ auth.onAuthStateChanged((user) => {
   if (user) {
-    // EL USUARIO YA ENTRÓ
+    // 1. El usuario ya está autenticado correctamente
     whoami.textContent = `Admin: ${user.email}`;
-    
-    // SOLO AHORA pedimos los datos de liveEvents
+
+    // 2. SOLO AQUÍ definimos la referencia y el escucha de datos
     const ref = db.ref("liveEvents").orderByChild("createdAt").limitToLast(LIMIT);
-    
+
     ref.on("value", (snap) => {
       const v = snap.val() || {};
-      cache = Object.entries(v).map(([id, obj]) => ({ _id:id, ...obj }))
-            .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      cache = Object.entries(v).map(([id, obj]) => ({ _id: id, ...obj }))
+             .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
       statusChip.textContent = "🟢 En vivo";
       upsertStoresFromCache();
       render();
     }, (error) => {
-      // Si sale el error aquí, es 100% por las Reglas de Firebase
-      console.error("Error de permisos en tiempo real:", error);
-      statusChip.textContent = "🔴 Error de Permisos";
+      // Si el error sale aquí, es un tema de las Reglas en la Consola
+      console.error("Error de permisos:", error);
+      statusChip.textContent = "🔴 Error de Acceso";
     });
 
   } else {
-    // SI NO HAY USUARIO, AL LOGIN
+    // Si no hay usuario, mandamos al login
     window.location.href = "admin-login.html";
   }
 });
