@@ -583,20 +583,32 @@
   statusChip.style.background = "rgba(255,255,255,.06)";
 
   // sesión / auth opcional para ver quien lo abre
-  auth.onAuthStateChanged(async (u)=>{
-    if(u){
-      whoami.textContent = `Admin: ${u.email || u.uid}`;
-      const ok = await requireAdmin(u).catch(()=>false);
-      if(!ok){
-        whoami.textContent = "Acceso denegado (no admin)";
-        statusChip.textContent = "🔴 No autorizado";
-        try{ ref.off(); }catch{}
-        return;
-      }
-    } else {
-      whoami.textContent = "Admin: (sin sesión)";
-    }
-  });
+  auth.onAuthStateChanged((user) => {
+  if (user) {
+    // EL USUARIO YA ENTRÓ
+    whoami.textContent = `Admin: ${user.email}`;
+    
+    // SOLO AHORA pedimos los datos de liveEvents
+    const ref = db.ref("liveEvents").orderByChild("createdAt").limitToLast(LIMIT);
+    
+    ref.on("value", (snap) => {
+      const v = snap.val() || {};
+      cache = Object.entries(v).map(([id, obj]) => ({ _id:id, ...obj }))
+            .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+      statusChip.textContent = "🟢 En vivo";
+      upsertStoresFromCache();
+      render();
+    }, (error) => {
+      // Si sale el error aquí, es 100% por las Reglas de Firebase
+      console.error("Error de permisos en tiempo real:", error);
+      statusChip.textContent = "🔴 Error de Permisos";
+    });
+
+  } else {
+    // SI NO HAY USUARIO, AL LOGIN
+    window.location.href = "admin-login.html";
+  }
+});
 
   ref.on("value", (snap) => {
     const v = snap.val() || {};
