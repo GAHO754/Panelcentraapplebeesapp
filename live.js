@@ -741,96 +741,67 @@ function renderAlerts(uid){
   }
 }
 
-function renderAlertsForUser(uid){
+async function renderAlertsForUser(uid) {
+  // 1. Limpieza inicial
   alertsList.innerHTML = "";
   alertsEmpty.style.display = "block";
-
   if (!uid) return;
 
+  let hasAlerts = false;
   const now = Date.now();
   const FIVE_MIN = 5 * 60 * 1000;
 
-  const userEvents = cache.filter(e => {
-    const u = eventMainUser(e).uid;
-    return u === uid;
-  });
+  // --- PARTE A: ALERTAS AUTOMÁTICAS (LOCALES) ---
+  const userEvents = cache.filter(e => eventMainUser(e).uid === uid);
 
-  // ❌ intentos fallidos recientes
-  const failedRecent = userEvents.filter(e =>
+  // Intentos fallidos recientes (5 min)
+  const failedRecent = userEvents.filter(e => 
     ["redeem_failed", "redeem_lookup_fail", "ticket_blocked", "scan_invalid_format"].includes(e.type) &&
     (now - (e.createdAt || 0)) <= FIVE_MIN
   );
 
-  if (failedRecent.length >= 3){
+  if (failedRecent.length >= 3) {
+    hasAlerts = true;
     alertsEmpty.style.display = "none";
     alertsList.innerHTML += `
       <div class="miniCard err">
         <strong>⚠️ Actividad sospechosa</strong>
-        <div class="muted">
-          ${failedRecent.length} intentos fallidos en menos de 5 minutos
-        </div>
-      </div>
-    `;
+        <div class="muted">${failedRecent.length} fallos en menos de 5 min.</div>
+      </div>`;
   }
 
-  // 🔁 demasiados canjes fallidos (histórico)
-  const failedRedeems = userEvents.filter(e => e.type === "redeem_failed");
-  if (failedRedeems.length >= 5){
-    alertsEmpty.style.display = "none";
-    alertsList.innerHTML += `
-      <div class="miniCard warn">
-        <strong>🚨 Riesgo de abuso</strong>
-        <div class="muted">
-          ${failedRedeems.length} canjes fallidos acumulados
-        </div>
-      </div>
-    `;
-  }
-}
-
-function renderAlertsForUser(uid){
-  if (!uid){
-    alertsList.innerHTML = "";
-    alertsEmpty.style.display = "block";
-    return;
-  }
-
-  db.ref("alerts")
-    .orderByChild("uid")
-    .equalTo(uid)
-    .limitToLast(20)
-    .once("value")
-    .then(snap=>{
-      if (!snap.exists()){
-        alertsList.innerHTML = "";
-        alertsEmpty.style.display = "block";
-        return;
-      }
-
-      const items = Object.entries(snap.val())
-        .map(([id,a])=>({ _id:id, ...a }))
-        .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-
+  // --- PARTE B: ALERTAS DESDE DATABASE (HISTÓRICAS) ---
+  try {
+    const snap = await db.ref("alerts").orderByChild("uid").equalTo(uid).limitToLast(10).once("value");
+    
+    if (snap.exists()) {
+      hasAlerts = true;
       alertsEmpty.style.display = "none";
+      
+      const items = Object.entries(snap.val())
+        .map(([id, a]) => ({ _id: id, ...a }))
+        .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
-      alertsList.innerHTML = items.map(a=>{
-        const lvl = (a.level||"warn").toLowerCase();
-        const icon = lvl==="err"?"⛔":lvl==="ok"?"✅":"⚠️";
-
+      alertsList.innerHTML += items.map(a => {
+        const lvl = (a.level || "warn").toLowerCase();
+        const icon = lvl === "err" ? "⛔" : (lvl === "ok" ? "✅" : "⚠️");
         return `
-          <div class="alertCard alert-${lvl}"
-               data-ticket="${a.ticketId||""}"
-               data-redeem="${a.redeemId||""}">
-            <div class="alertIcon">${icon}</div>
-            <div class="alertBody">
-              <div class="alertTitle">${safe(a.title||"Alerta")}</div>
-              <div class="alertMeta">${safe(a.message||"")}</div>
-              <div class="alertMeta mono">${fmtTime(a.createdAt)}</div>
+          <div class="miniCard">
+            <div style="display:flex; gap:10px; align-items:center;">
+               <span>${icon}</span>
+               <strong>${safe(a.title || "Alerta")}</strong>
             </div>
-          </div>
-        `;
+            <div class="muted" style="margin-top:5px;">${safe(a.message || "")}</div>
+            <div class="muted mono" style="font-size:10px;">${fmtTime(a.createdAt)}</div>
+          </div>`;
       }).join("");
-    });
+    }
+  } catch (err) {
+    console.error("Error cargando alertas históricas:", err);
+  }
+
+  // Si después de ambas partes no hay nada, mostrar el mensaje de "vacío"
+  if (!hasAlerts) alertsEmpty.style.display = "block";
 }
 
 
@@ -905,9 +876,5 @@ function evaluateSmartAlerts(uid, data){
     db.ref("alerts").push(a);
   });
 }
-
-
-
-
   });
 })();
