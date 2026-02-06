@@ -1,354 +1,36 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Admin | Live Monitor</title>
-  <link rel="icon" type="image/png" sizes="32x32" href="manzanas.png">
-  <link rel="stylesheet" href="alerts.css">
+  <meta charset="UTF-8" />
+  <title>Admin Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <style>
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0b0f19;color:#e9edf4}
-    header{position:sticky;top:0;background:rgba(10,15,25,.9);backdrop-filter:blur(10px);
-      border-bottom:1px solid rgba(255,255,255,.08);padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;z-index:10}
-    .wrap{max-width:1200px;margin:18px auto;padding:0 14px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    .chip{padding:6px 10px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.06);font-size:12px}
-    .card{background:rgba(255,255,255,.05);border:1px solid rgba(0, 0, 0, 0.1);border-radius:16px;padding:12px}
-    input,select{background:rgba(255,255,255,.06);border:1px solid rgba(8, 8, 8, 0.14);color:#ffffff;border-radius:10px;padding:10px 12px}
-          /* Esto obliga a que el fondo del selector sea oscuro incluso al abrirlo */
-      select {
-          color-scheme: dark; /* Ayuda a los navegadores modernos a usar temas oscuros */
-      }
+  <link rel="icon" type="image/png" sizes="32x32" href="iconofile.png">
+  <!-- CSS -->
+  <link rel="stylesheet" href="login.css" />
 
-      select option {
-          background-color: #151b28 !important; /* El color oscuro de tu panel */
-          color: #ffffff !important;
-      }
-    .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
-
-    .evt{display:grid;gap:6px}
-    .evt-top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-    .tag{font-size:12px;padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.14)}
-    .ok{background:rgba(46,125,50,.18);border-color:rgba(46,125,50,.35)}
-    .warn{background:rgba(255,193,7,.14);border-color:rgba(255,193,7,.35)}
-    .err{background:rgba(198,40,40,.18);border-color:rgba(198,40,40,.35)}
-    .muted{opacity:.8}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
-    button{cursor:pointer;border:0;border-radius:10px;padding:10px 12px;font-weight:800}
-    .btn{background:#1f6feb;color:#fff}
-    .btn2{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.18)}
-    .btn3{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.14)}
-    .btnDanger{background:rgba(198,40,40,.18);border:1px solid rgba(198,40,40,.35);color:#fff}
-
-    .tablewrap{overflow:auto;border-radius:16px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.04);margin-top:12px}
-    table{width:100%;border-collapse:collapse;font-size:13px;min-width:980px}
-    th,td{padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top}
-    th{position:sticky;top:0;background:rgba(10,15,25,.95);text-align:left}
-    tr:hover td{background:rgba(255,255,255,.03)}
-
-    /* Inspector modal */
-    .overlay{
-      display:none; position:fixed; inset:0; z-index:9999;
-      background:rgba(0,0,0,.72); backdrop-filter: blur(2px);
-      padding:18px;
-    }
-    .modal{
-      max-width:1100px; margin:0 auto;
-      background:rgba(15,19,32,.96);
-      border:1px solid rgba(255,255,255,.12);
-      border-radius:18px;
-      overflow:hidden;
-      box-shadow:0 20px 60px rgba(0,0,0,.55);
-    }
-    .modal-head{
-      display:flex; align-items:center; justify-content:space-between; gap:10px;
-      padding:12px 14px; border-bottom:1px solid rgba(255,255,255,.10);
-    }
-    .modal-title{display:flex; flex-direction:column; gap:2px}
-    .modal-title strong{font-size:16px}
-    .modal-title small{opacity:.85}
-    .tabs{display:flex; gap:8px; flex-wrap:wrap; padding:10px 14px; border-bottom:1px solid rgba(255,255,255,.08)}
-    .tab{
-      padding:8px 10px; border-radius:12px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.06);
-      font-weight:800; font-size:12px;
-      cursor:pointer;
-    }
-    .tab.active{background:rgba(31,111,235,.22);border-color:rgba(31,111,235,.42)}
-    .modal-body{padding:14px}
-    .cols{display:grid;grid-template-columns: 1fr 1fr; gap:12px}
-    @media (max-width:900px){ .cols{grid-template-columns:1fr} table{min-width:860px} }
-
-    .kv{display:grid;grid-template-columns:160px 1fr; gap:8px; font-size:13px}
-    .kv div{padding:6px 0;border-bottom:1px dashed rgba(255,255,255,.08)}
-    .k{opacity:.75}
-    .v b{font-weight:900}
-    .pill{
-      display:inline-flex;gap:8px;align-items:center;
-      padding:6px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.14);
-      background:rgba(255,255,255,.06);
-      font-size:12px;font-weight:800
-    }
-    .listCards{display:grid;gap:10px}
-    .miniCard{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:12px}
-    .miniRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
-    .right{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-    .hr{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
-  </style>
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-<header>
-  <div class="row">
-    <strong>📡 Live Monitor</strong>
-    <span class="chip" id="statusChip">Conectando…</span>
-    <span class="chip muted" id="whoami"></span>
-  </div>
-  <div class="row">
-    <select id="storeFilter" title="Sucursal">
-  <option value="">Todas las sucursales</option>
-  <option value="Torres">Applebee's Torres</option>
-  <option value="Tecnologico">Applebee's Tecnológico</option>
-  <option value="Paseo Triunfo">Applebee's Paseo Triunfo</option>
-</select>
-    <select id="typeFilter">
-      <option value="">Todos</option>
-      <option value="ticket_scan">ticket_scan</option>
-      <option value="ticket_registered">ticket_registered</option>
-      <option value="ticket_blocked">ticket_blocked</option>
-      <option value="redeem_scan">redeem_scan</option>
-      <option value="redeem_lookup_ok">redeem_lookup_ok</option>
-      <option value="redeem_lookup_fail">redeem_lookup_fail</option>
-      <option value="redeem_validated">redeem_validated</option>
-      <option value="redeem_failed">redeem_failed</option>
-      <option value="manager_session">manager_session</option>
-      <option value="scan_invalid_format">scan_invalid_format</option>
-    </select>
 
-    <input id="q" placeholder="Buscar (email / folio / uid / code)" />
-    <button class="btn2" id="btnClear">Limpiar</button>
-    <button class="btn3" id="btnToggleView">Vista: Tarjetas</button>
-  </div>
-</header>
+  <div class="login-container">
+    <div class="login-card">
+      <h1>Panel Administrativo</h1>
+      <p>Acceso restringido</p>
 
-<div class="wrap">
-  <div class="row">
-    <div class="chip">Mostrando últimos <span id="n">60</span></div>
-    <div class="chip">Eventos filtrados: <span id="count">0</span></div>
-  </div>
+      <input id="email" type="email" placeholder="Correo electrónico" />
+      <input id="password" type="password" placeholder="Contraseña" />
 
-  <div class="grid" id="list"></div>
+      <button id="loginBtn">Entrar</button>
 
-  <div class="tablewrap" id="tableWrap" style="display:none;">
-    <table>
-      <thead>
-        <tr>
-          <th>Hora</th>
-          <th>Tipo</th>
-          <th>Sucursal</th>
-          <th>Estado</th>
-          <th>Usuario</th>
-          <th>Ticket / Canje</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tbody"></tbody>
-    </table>
-  </div>
-</div>
-
-<!-- Inspector modal -->
-<div class="overlay" id="inspectorOverlay" aria-hidden="true">
-  <div class="modal">
-    <div class="modal-head">
-      <div class="modal-title">
-        <strong id="insTitle">Inspector</strong>
-        <small id="insSub" class="muted">—</small>
-      </div>
-      <div class="right">
-        <button class="btn2" id="btnRefreshIns" type="button">Actualizar</button>
-        <button class="btnDanger" id="btnCloseIns" type="button">Cerrar</button>
-      </div>
-    </div>
-
-    <div class="tabs">
-      <button class="tab active" data-tab="profile">Perfil</button>
-      <button class="tab" data-tab="tickets">Tickets</button>
-      <button class="tab" data-tab="redemptions">Canjes</button>
-      <button class="tab" data-tab="limits">Límites / Alertas</button>
-      <button class="tab" data-tab="history">Historial usuario</button>
-
-    </div>
-
-    <div class="modal-body">
-
-        <!-- PERFIL -->
-        <div id="tab_profile">
-            <div class="cols">
-            <div class="card">
-                <div class="miniRow">
-                <strong>Datos del usuario</strong>
-                <span class="pill" id="pillUid">UID: —</span>
-                </div>
-                <div class="hr"></div>
-                <div class="kv" id="profileKV"></div>
-            </div>
-            </div>
-        </div>
-
-        <!-- HISTORIAL USUARIO -->
-        <div id="tab_history" style="display:none">
-            <div class="card">
-            <strong>Actividad reciente del usuario</strong>
-            <div id="userHistoryList" class="listCards" style="margin-top:10px"></div>
-            </div>
-        </div>
-
-        </div>
-
-
-
-          <div class="card">
-            <div class="miniRow">
-              <strong>Resumen</strong>
-              <div class="right">
-                <span class="pill">Saldo: <b id="sumSaldo">$0.00</b></span>
-                <span class="pill">Tickets: <b id="sumTickets">0</b></span>
-                <span class="pill">Canjes: <b id="sumCanjes">0</b></span>
-              </div>
-            </div>
-            <div class="hr"></div>
-            <div class="listCards" id="summaryCards"></div>
-          </div>
-        </div>
-      </div>
-
-      <div id="tab_tickets" style="display:none;">
-        <div class="miniRow">
-          <strong>Tickets del cliente</strong>
-          <span class="muted">Últimos 200</span>
-        </div>
-        <div class="hr"></div>
-        <div class="listCards" id="ticketsList"></div>
-      </div>
-
-      <div id="tab_redemptions" style="display:none;">
-        <div class="miniRow">
-          <strong>Canjes del cliente</strong>
-          <span class="muted">Últimos 200</span>
-        </div>
-        <div class="hr"></div>
-        <div class="listCards" id="redsList"></div>
-      </div>
-
-      <div id="tab_limits" style="display:none;">
-  <div class="cols">
-
-    <!-- REGLAS / LIMITES (YA EXISTENTE) -->
-    <div class="card">
-      <div class="miniRow">
-        <strong>Reglas / Límites</strong>
-        <span class="muted">Calculado en vivo</span>
-      </div>
-      <div class="hr"></div>
-      <div class="listCards" id="limitsCards"></div>
-    </div>
-
-    <!-- 🚨 ALERTAS AUTOMÁTICAS (NUEVO) -->
-    <div class="card">
-      <div class="miniRow">
-        <strong>🚨 Alertas del sistema</strong>
-        <span class="muted">Detección automática</span>
-      </div>
-      <div class="hr"></div>
-
-      <div id="alertsList" class="listCards"></div>
-      <div id="alertsEmpty" class="muted">Sin alertas detectadas</div>
-    </div>
-
-  </div>
-</div>
-
-
-      <div class="muted" id="insMsg" style="margin-top:10px;"></div>
+      <span id="errorMsg"></span>
     </div>
   </div>
-</div>
 
-<!-- ===============================
-     MODAL — INSPECCIONAR CLIENTE
-================================ -->
-<div id="inspectModal" class="modal-overlay" hidden>
-  <div class="modal modal-xl">
-
-    <header class="modal-header">
-      <h2>Inspeccionar cliente</h2>
-      <button id="btnCloseInspect" class="btn ghost">✕</button>
-    </header>
-
-    <section class="modal-body">
-
-      <!-- PERFIL -->
-      <div class="inspect-profile">
-        <h3>Perfil del cliente</h3>
-        <p><b>UID:</b> <span id="iUid">—</span></p>
-        <p><b>Registro:</b> <span id="iSince">—</span></p>
-        <p><b>Puntos actuales:</b> <span id="iPoints">—</span></p>
-        <p><b>Estado:</b> <span id="iStatus" class="chip chip-ok">NORMAL</span></p>
-      </div>
-
-      <!-- KPIs -->
-      <div class="inspect-kpis">
-        <div class="kpi-card">
-          <span>Canjes hoy</span>
-          <b id="kToday">0</b>
-        </div>
-        <div class="kpi-card">
-          <span>Últimos 7 días</span>
-          <b id="kWeek">0</b>
-        </div>
-        <div class="kpi-card">
-          <span>Tiempo medio</span>
-          <b id="kAvg">—</b>
-        </div>
-      </div>
-
-      <!-- ALERTAS -->
-      <div class="inspect-alerts">
-        <h3>Alertas</h3>
-        <ul id="alertList">
-          <li class="ok">Sin alertas</li>
-        </ul>
-      </div>
-
-      <!-- HISTORIAL -->
-      <div class="inspect-history">
-        <h3>Historial reciente</h3>
-        <ul id="historyList"></ul>
-      </div>
-
-    </section>
-
-    <footer class="modal-footer">
-      <button class="btn ghost" id="btnCancelInspect">Cerrar</button>
-      <button class="btn primary" id="btnApproveRedeem" disabled>
-        Autorizar canje
-      </button>
-    </footer>
-
-  </div>
-</div>
-
-
-<!-- Firebase core -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-
-<!-- Configuración -->
-<script>
+  <script>
+  // Usa la configuración real de tu proyecto
   const firebaseConfig = {
     apiKey: "AIzaSyAWta7DENSCSb-DN8OcKGa6uAbTbUYJhVg",
     authDomain: "applebesapp.firebaseapp.com",
@@ -356,17 +38,50 @@
     projectId: "applebesapp",
     storageBucket: "applebesapp.firebasestorage.app",
     messagingSenderId: "83305456668",
-    appId: "1:83305456668:web:3dfcfdd4eb2b6cb8982bd9",
-    measurementId: "G-WNTW6P44P3"
+    appId: "1:83305456668:web:3dfcfdd4eb2b6cb8982bd9"
   };
 
+  // Inicializar Firebase
   firebase.initializeApp(firebaseConfig);
+
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const errorMsg = document.getElementById("errorMsg");
+  const loginBtn = document.getElementById("loginBtn");
+
+  loginBtn.onclick = async () => {
+    const email = emailInput.value.trim();
+    const password = passwordInput.value.trim();
+
+    if (!email || !password) {
+      errorMsg.textContent = "Por favor, completa todos los campos.";
+      return;
+    }
+
+    loginBtn.disabled = true;
+    loginBtn.textContent = "Cargando...";
+    errorMsg.textContent = "";
+
+    try {
+      // Intento de inicio de sesión
+      await firebase.auth().signInWithEmailAndPassword(email, password);
+      
+      // Si tiene éxito, redirigir
+      window.location.href = "admin-live.html";
+    } catch (err) {
+      console.error(err);
+      loginBtn.disabled = false;
+      loginBtn.textContent = "Entrar";
+      
+      // Mensajes de error amigables
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        errorMsg.textContent = "Usuario o contraseña incorrectos.";
+      } else {
+        errorMsg.textContent = "Error al acceder. Intenta de nuevo.";
+      }
+    }
+  };
 </script>
-
-<!-- TU APP (SIEMPRE AL FINAL) -->
-<script src="live.js"></script>
-
-
 
 </body>
 </html>
