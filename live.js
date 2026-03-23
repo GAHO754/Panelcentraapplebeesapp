@@ -1,4 +1,3 @@
-
 (() => {
   const db = firebase.database();
   const auth = firebase.auth();
@@ -6,10 +5,6 @@
 
 
   /* ===============================
-     ⚠️ OPCIONAL: Gate Admin
-     Si quieres bloquear el panel solo a admins:
-     - crea nodo /admins/{uid}: true
-     - y deja ADMIN_GATE = true
      =============================== */
   const ADMIN_GATE = false; // 👈 si quieres seguridad fuerte, pon true
   async function requireAdmin(u){
@@ -583,45 +578,33 @@
   statusChip.style.background = "rgba(255,255,255,.06)";
 
   // sesión / auth opcional para ver quien lo abre
- auth.onAuthStateChanged((user) => {
+auth.onAuthStateChanged((user) => {
   if (user) {
-    // 1. El usuario ya está autenticado correctamente
     whoami.textContent = `Admin: ${user.email}`;
 
-    // 2. SOLO AQUÍ definimos la referencia y el escucha de datos
+    // ✅ La referencia se crea AQUÍ adentro
     const ref = db.ref("liveEvents").orderByChild("createdAt").limitToLast(LIMIT);
 
     ref.on("value", (snap) => {
       const v = snap.val() || {};
+      // Guardamos en cache y ordenamos
       cache = Object.entries(v).map(([id, obj]) => ({ _id: id, ...obj }))
-             .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      
       statusChip.textContent = "🟢 En vivo";
       upsertStoresFromCache();
-      render();
+      render(); // 👈 Esto es lo que dibuja las tarjetas
     }, (error) => {
-      // Si el error sale aquí, es un tema de las Reglas en la Consola
       console.error("Error de permisos:", error);
       statusChip.textContent = "🔴 Error de Acceso";
     });
 
   } else {
-    // Si no hay usuario, mandamos al login
     window.location.href = "admin-login.html";
   }
 });
 
-  ref.on("value", (snap) => {
-    const v = snap.val() || {};
-    cache = Object.entries(v).map(([id, obj]) => ({ _id:id, ...obj }))
-      .sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-    statusChip.textContent = "🟢 En vivo";
 
-    upsertStoresFromCache();
-    render();
-  }, (err) => {
-    console.error(err);
-    statusChip.textContent = "🔴 Error RTDB";
-  });
 
   storeFilter.addEventListener("change", render);
   typeFilter.addEventListener("change", render);
