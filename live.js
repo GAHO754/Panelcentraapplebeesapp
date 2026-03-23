@@ -73,12 +73,13 @@
   }
 
   function upsertStoresFromCache() {
-  // 1. Definimos SOLO las sucursales oficiales
   const oficialStores = {
     "Torres": "Applebee's Torres",
     "Tecnologico": "Applebee's Tecnológico",
-    "Paseo Triunfo": "Applebee's Paseo Triunfo"
+    "Paseo Triunfo": "Applebee's Paseo Triunfo",
+    "APB_PASEO": "Applebee’s Paseo Central" // 👈 AGREGA ESTA LÍNEA
   };
+  // ... resto del código igual
 
   const currentSelection = storeFilter.value;
 
