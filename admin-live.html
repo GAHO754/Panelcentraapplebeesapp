@@ -6,8 +6,8 @@
   <title>Admin | Live Monitor</title>
   <link rel="icon" type="image/png" sizes="32x32" href="iconofile.png">
   <link rel="stylesheet" href="alerts.css">
-
   <style>
+    
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0b0f19;color:#e9edf4}
     header{position:sticky;top:0;background:rgba(10,15,25,.9);backdrop-filter:blur(10px);
       border-bottom:1px solid rgba(255,255,255,.08);padding:12px 14px;display:flex;gap:10px;align-items:center;justify-content:space-between;z-index:10}
@@ -16,13 +16,11 @@
     .chip{padding:6px 10px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.06);font-size:12px}
     .card{background:rgba(255,255,255,.05);border:1px solid rgba(0, 0, 0, 0.1);border-radius:16px;padding:12px}
     input,select{background:rgba(255,255,255,.06);border:1px solid rgba(8, 8, 8, 0.14);color:#ffffff;border-radius:10px;padding:10px 12px}
-          /* Esto obliga a que el fondo del selector sea oscuro incluso al abrirlo */
       select {
-          color-scheme: dark; /* Ayuda a los navegadores modernos a usar temas oscuros */
+          color-scheme: dark;
       }
- 
       select option {
-          background-color: #151b28 !important; /* El color oscuro de tu panel */
+          background-color: #151b28 !important; 
           color: #ffffff !important;
       }
     .grid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:12px}
@@ -46,7 +44,6 @@
     th,td{padding:10px 10px;border-bottom:1px solid rgba(255,255,255,.08);vertical-align:top}
     th{position:sticky;top:0;background:rgba(10,15,25,.95);text-align:left}
     tr:hover td{background:rgba(255,255,255,.03)}
-
     /* Inspector modal */
     .overlay{
       display:none; position:fixed; inset:0; z-index:9999;
@@ -126,21 +123,17 @@
   <option value="manager_session">Sesión de Administrador</option>
   <option value="scan_invalid_format">Formato de Escaneo Inválido</option>
 </select>
-
     <input id="q" placeholder="Buscar (email / folio / uid / code)" />
     <button class="btn2" id="btnClear">Limpiar</button>
     <button class="btn3" id="btnToggleView">Vista: Tarjetas</button>
   </div>
 </header>
-
 <div class="wrap">
   <div class="row">
     <div class="chip">Mostrando últimos <span id="n">60</span></div>
     <div class="chip">Eventos filtrados: <span id="count">0</span></div>
   </div>
-
   <div class="grid" id="list"></div>
-
   <div class="tablewrap" id="tableWrap" style="display:none;">
     <table>
       <thead>
@@ -158,7 +151,6 @@
     </table>
   </div>
 </div>
-
 <!-- Inspector modal -->
 <div class="overlay" id="inspectorOverlay" aria-hidden="true">
   <div class="modal">
@@ -172,56 +164,49 @@
         <button class="btnDanger" id="btnCloseIns" type="button">Cerrar</button>
       </div>
     </div>
-
+    
     <div class="tabs">
       <button class="tab active" data-tab="profile">Perfil</button>
       <button class="tab" data-tab="tickets">Tickets</button>
       <button class="tab" data-tab="redemptions">Canjes</button>
       <button class="tab" data-tab="limits">Límites / Alertas</button>
       <button class="tab" data-tab="history">Historial usuario</button>
-
     </div>
 
     <div class="modal-body">
-
-        <!-- PERFIL -->
-        <div id="tab_profile">
-            <div class="cols">
-            <div class="card">
-                <div class="miniRow">
-                <strong>Datos del usuario</strong>
-                <span class="pill" id="pillUid">UID: —</span>
-                </div>
-                <div class="hr"></div>
-                <div class="kv" id="profileKV"></div>
-            </div>
-            </div>
-        </div>
-
-        <!-- HISTORIAL USUARIO -->
-        <div id="tab_history" style="display:none">
-            <div class="card">
-            <strong>Actividad reciente del usuario</strong>
-            <div id="userHistoryList" class="listCards" style="margin-top:10px"></div>
-            </div>
-        </div>
-
-        </div>
-
-
-
+      <div id="tab_profile">
+        <div class="cols">
           <div class="card">
             <div class="miniRow">
-              <strong>Resumen</strong>
+              <strong>Datos del usuario</strong>
+              <span class="pill" id="pillUid">UID: —</span>
+            </div>
+            <div class="hr"></div>
+            <div class="kv" id="profileKV"></div>
+          </div>
+          
+          <div class="card">
+            <div class="miniRow">
+              <strong>Resumen de Puntos</strong>
               <div class="right">
                 <span class="pill">Saldo: <b id="sumSaldo">$0.00</b></span>
-                <span class="pill">Tickets: <b id="sumTickets">0</b></span>
-                <span class="pill">Canjes: <b id="sumCanjes">0</b></span>
               </div>
             </div>
             <div class="hr"></div>
-            <div class="listCards" id="summaryCards"></div>
+            <div class="listCards" id="summaryCards">
+                <div class="miniRow">
+                    <span>Tickets: <b id="sumTickets">0</b></span>
+                    <span>Canjes: <b id="sumCanjes">0</b></span>
+                </div>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <div id="tab_history" style="display:none">
+        <div class="card">
+          <strong>Actividad reciente del usuario</strong>
+          <div id="userHistoryList" class="listCards" style="margin-top:10px"></div>
         </div>
       </div>
 
@@ -231,7 +216,7 @@
           <span class="muted">Últimos 200</span>
         </div>
         <div class="hr"></div>
-        <div class="listCards" id="ticketsList"></div>
+        <div id="ticketsList" class="listCards"></div>
       </div>
 
       <div id="tab_redemptions" style="display:none;">
@@ -240,43 +225,34 @@
           <span class="muted">Últimos 200</span>
         </div>
         <div class="hr"></div>
-        <div class="listCards" id="redsList"></div>
+        <div id="redsList" class="listCards"></div>
       </div>
 
       <div id="tab_limits" style="display:none;">
-  <div class="cols">
-
-    <!-- REGLAS / LIMITES (YA EXISTENTE) -->
-    <div class="card">
-      <div class="miniRow">
-        <strong>Reglas / Límites</strong>
-        <span class="muted">Calculado en vivo</span>
+        <div class="cols">
+          <div class="card">
+            <div class="miniRow">
+              <strong>Reglas / Límites</strong>
+              <span class="muted">Calculado en vivo</span>
+            </div>
+            <div class="hr"></div>
+            <div id="limitsCards" class="listCards"></div>
+          </div>
+          <div class="card">
+            <div class="miniRow">
+              <strong>🚨 Alertas del sistema</strong>
+            </div>
+            <div class="hr"></div>
+            <div id="alertsList" class="listCards"></div>
+            <div id="alertsEmpty" class="muted">Sin alertas detectadas</div>
+          </div>
+        </div>
       </div>
-      <div class="hr"></div>
-      <div class="listCards" id="limitsCards"></div>
-    </div>
-
-    <!-- 🚨 ALERTAS AUTOMÁTICAS (NUEVO) -->
-    <div class="card">
-      <div class="miniRow">
-        <strong>🚨 Alertas del sistema</strong>
-        <span class="muted">Detección automática</span>
-      </div>
-      <div class="hr"></div>
-
-      <div id="alertsList" class="listCards"></div>
-      <div id="alertsEmpty" class="muted">Sin alertas detectadas</div>
-    </div>
-
-  </div>
-</div>
-
 
       <div class="muted" id="insMsg" style="margin-top:10px;"></div>
     </div>
   </div>
 </div>
-
 <!-- ===============================
      MODAL — INSPECCIONAR CLIENTE
 ================================ -->
@@ -289,7 +265,6 @@
     </header>
 
     <section class="modal-body">
-
       <!-- PERFIL -->
       <div class="inspect-profile">
         <h3>Perfil del cliente</h3>
@@ -298,7 +273,6 @@
         <p><b>Puntos actuales:</b> <span id="iPoints">—</span></p>
         <p><b>Estado:</b> <span id="iStatus" class="chip chip-ok">NORMAL</span></p>
       </div>
-
       <!-- KPIs -->
       <div class="inspect-kpis">
         <div class="kpi-card">
@@ -314,7 +288,6 @@
           <b id="kAvg">—</b>
         </div>
       </div>
-
       <!-- ALERTAS -->
       <div class="inspect-alerts">
         <h3>Alertas</h3>
@@ -322,15 +295,12 @@
           <li class="ok">Sin alertas</li>
         </ul>
       </div>
-
       <!-- HISTORIAL -->
       <div class="inspect-history">
         <h3>Historial reciente</h3>
         <ul id="historyList"></ul>
       </div>
-
     </section>
-
     <footer class="modal-footer">
       <button class="btn ghost" id="btnCancelInspect">Cerrar</button>
       <button class="btn primary" id="btnApproveRedeem" disabled>
@@ -340,8 +310,6 @@
 
   </div>
 </div>
-
-
 <!-- Firebase core -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -359,14 +327,9 @@
     appId: "1:83305456668:web:3dfcfdd4eb2b6cb8982bd9",
     measurementId: "G-WNTW6P44P3"
   };
-
   firebase.initializeApp(firebaseConfig);
 </script>
-
 <!-- TU APP (SIEMPRE AL FINAL) -->
 <script src="live.js"></script>
-
-
-
 </body>
 </html>
