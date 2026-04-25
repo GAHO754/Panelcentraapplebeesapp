@@ -97,8 +97,14 @@
   }
 
   function extractStore(evt) {
-    return String(evt.storeId || evt.storeName || "").trim();
-  }
+  const raw = String(evt.storeId || evt.storeName || "").trim().toLowerCase();
+
+  if (raw.includes("torres")) return "Torres";
+  if (raw.includes("tecnologico") || raw.includes("tecnológico")) return "Tecnologico";
+  if (raw.includes("paseo")) return "Paseo Triunfo";
+
+  return raw;
+}
 
   function upsertStoresFromCache() {
     const oficialStores = {
@@ -177,6 +183,8 @@
               ${e.ticket?.fecha ? `<span class="chip">Fecha: <b>${safe(e.ticket.fecha)}</b></span>` : ""}
               ${total ? `<span class="chip">Total: <b>$${safe(total)}</b></span>` : ""}
               ${mesero ? `<span class="chip">Mesero: <b>${safe(mesero)}</b></span>` : ""}
+              ${e.ticket?.fallbackApplied ? `<span class="chip">Fallback: <b>$10.00</b></span>` : ""}
+              ${e.ticket?.imageUrl ? `<a class="chip" href="${safe(e.ticket.imageUrl)}" target="_blank">Ver imagen</a>` : ""}
               ${code ? `<span class="chip">Código: <b class="mono">${safe(code)}</b></span>` : ""}
               ${reward ? `<span class="chip">Reward: <b>${safe(reward)}</b></span>` : ""}
               ${cost ? `<span class="chip">Costo: <b>${safe(cost)}</b></span>` : ""}
@@ -474,7 +482,12 @@
         points: normalizeTicketPoints(t),
         vence: Number(t.vencePuntos || 0),
         createdAt: Number(t.createdAt || 0),
-        id: t.id || ""
+        id: t.id || "",
+        fallbackApplied: !!t.fallbackApplied,
+        imagen: t.imagen || t.imageUrl || "",
+        reviewStatus: t.reviewStatus || "",
+        totalConfiable: !!t.totalConfiable,
+        ocrSource: t.ocrSource || ""
       })).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
       const rSnap = await db.ref(`users/${INS.uid}/redemptions`).limitToLast(200).once("value");
@@ -601,6 +614,11 @@
             <span class="chip">Total: <b>${money(t.total || 0)}</b></span>
             <span class="chip">Mesero: <b>${safe(t.mesero || "—")}</b></span>
             <span class="chip">Escaneado: <b>${t.createdAt ? fmtTime(t.createdAt) : "—"}</b></span>
+            ${t.fallbackApplied ? `<span class="chip">Fallback: <b>$10.00</b></span>` : ""}
+            ${t.reviewStatus ? `<span class="chip">Revisión: <b>${safe(t.reviewStatus)}</b></span>` : ""}
+            ${t.totalConfiable ? `<span class="chip">Total OCR: <b>Confiable</b></span>` : `<span class="chip">Total OCR: <b>No confiable</b></span>`}
+            ${t.ocrSource ? `<span class="chip">OCR: <b>${safe(t.ocrSource)}</b></span>` : ""}
+            ${t.imagen ? `<a class="chip" href="${safe(t.imagen)}" target="_blank">Ver imagen</a>` : ""}
           </div>
           <div class="muted">Vence: <b>${t.vence ? fmtTime(t.vence) : "—"}</b></div>
         </div>
